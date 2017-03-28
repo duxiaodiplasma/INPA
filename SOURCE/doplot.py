@@ -2,6 +2,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
+def orbit(geo,res):
+    fig = plt.figure()
+    ax = fig.add_subplot(111,projection='3d')
+
+    foils = np.shape(geo.foil)[0]
+    for i in range(0,foils):
+        ax.plot(geo.foil[i,:,0],geo.foil[i,:,1],geo.foil[i,:,2],color='red')
+    ax.scatter(geo.uphor[:,0],geo.uphor[:,1],geo.uphor[:,2],color='GREEN',s=100)
+    ax.scatter(geo.lphor[:,0],geo.lphor[:,1],geo.lphor[:,2],color='black')
+    ax.scatter(res.sol[::10,0],res.sol[::10,1],res.sol[::10,2])
+    return 'PLOT ORBIT'
+
 
 def sp(geo,res):
     fig = plt.figure()
@@ -19,5 +31,7 @@ def sp(geo,res):
 
     foils = np.shape(geo.foil)[0]
     for i in range(0,foils):
-        ax.scatter(geo.foil[i,:,0],geo.foil[i,:,1],geo.foil[i,:,2],color='red')
+        ax.plot(geo.foil[i,:,0],geo.foil[i,:,1],geo.foil[i,:,2],color='red')
+
+    return 'PLOT STRIKING POINTS'
 

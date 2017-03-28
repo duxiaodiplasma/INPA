@@ -5,7 +5,7 @@ import numpy as np
 ''' if being inside, return 1, if being outside, return 0'''
 def point_in_tri(P, A, B, C):
 
-    # Compute vectors        
+    # Compute vectors
     v0 = C - A
     v1 = B - A
     v2 = P - A
@@ -15,7 +15,7 @@ def point_in_tri(P, A, B, C):
     dot02 = np.dot(v0, v2)
     dot11 = np.dot(v1, v1)
     dot12 = np.dot(v1, v2)
-  
+
     # Compute barycentric coordinates
     invDenom = 1. / (dot00 * dot11 - dot01 * dot01)
     u = (dot11 * dot02 - dot01 * dot12) * invDenom
@@ -23,7 +23,7 @@ def point_in_tri(P, A, B, C):
 
     # Check if point is in triangle
     if u >= 0 and v >= 0 and u + v < 1:
-       return 1 
+       return 1
     else:
        return 0
 
@@ -31,8 +31,7 @@ def point_in_tri(P, A, B, C):
 ''' transfer X,Y,Z coordinate to R, Z, Phi coordinate'''
 def xyz_to_rzphi(x,y,z):
 
-    r = np.sqrt(x**2+y**2) 
-    z = np.array(z)
+    r = np.sqrt(x**2+y**2)
     phi = -1.0*np.arctan(x/y)
                       # note that the +Bt in DIII-D is C.W. direction
                       # multiply -1 to change the coordinate from LHS to RHS
@@ -44,7 +43,7 @@ def xyz_to_rzphi(x,y,z):
 '''inch to meter'''
 def inchtometer(inch):
     meter = 0.0254*inch
-    return meter 
+    return meter
 
 
 '''intersections of any line and cycle centered at (0,0)'''

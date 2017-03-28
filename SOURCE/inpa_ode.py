@@ -56,7 +56,7 @@ import output4_fidasim
 import read_hd5
 import particle_launcher
 import numpy as np
-import scipy
+from scipy.integrate import odeint
 
 '''particle location at t+dt'''
 def track(s_t0, v, tstep):
@@ -66,14 +66,6 @@ def track(s_t0, v, tstep):
     s_t1[2] = s_t0[2] + v[2]*tstep
     return s_t1
 
-'''accerlation by lorentz force at t+dt'''
-def acce(v, Bt):
-    a = np.zeros(3)
-    charge = 1.6*(1e-19)
-    mass_p = 1.67*(1e-27)
-    mass_d = 2*mass_p
-    a = charge/mass_d*np.cross(v,Bt)
-    return a
 
 '''velocity at t+dt'''
 def velo(v_t0, a, tstep):
@@ -158,6 +150,39 @@ def initial_v(E_energy,n0_p,n0_f):
 
     return v_ini
 
+def ode_equ(s,t,fr,fz,rc,bc,charge,mass):
+    x,y,z = s[0],s[1],s[2]
+    vx,vy,vz = s[3],s[4],s[5]
+
+    # 20170327 calculate local bt
+
+    # xyz to rzphi
+    lr = np.sqrt(x**2+y**2)
+    lz = z
+    phi = -1.0*np.arctan(x/y)
+                      # note that the +Bt in DIII-D is C.W. direction
+                      # multiply -1 to change the coordinate from LHS to RHS
+                      # phi rotates also in C.C.W direction
+                      # the same coordinate with TRIP3D and M3d-c1
+
+    # local magnetic field strength
+    l_dpsir = fr(lz,lr)
+    l_dpsiz = fz(lz,lr)
+
+    br = -1.0*-(1/lr)*l_dpsiz
+    bz = -1.0* (1/lr)*l_dpsir # -1.0 for unify the defination
+                  # of the plus current direction in DIII-D,$
+                  # which is CCW direction for plus
+    bt = np.asarray(rc*bc/lr)
+
+    # rz coordinate to xyz coordinate
+    bx = -1.0*bt*np.cos(phi)-br*np.sin(phi)
+    by = -1.0*bt*np.sin(phi)+br*np.cos(phi)
+    b = np.concatenate([bx,by,bz])
+
+    ax,ay,az = charge/mass*np.cross([vx,vy,vz],b)
+
+    return np.array([vx,vy,vz,ax,ay,az])
 
 '''--------------'''
 '''MAIN Program'''
@@ -216,61 +241,38 @@ def main(geo,ini):
        E_ini[mc] = E_energy
 
        # -----------------------
-       #     MAIN CALCULATION  |
+       #     solve ode         |
        # -----------------------
 
-       # trace orbit from foil
-       # s is the position in XYZ coordinate
-       s = n0_f
-       # v is the initial velocity in XYZ coordinate
-       v = v_ini
+       ini_y0 = np.concatenate((n0_f,v_ini))
 
-       # trace the Larmor motion
-       for i in np.arange(steps):
+       # time slices for integrator
+       tsol = np.arange(0,tstep*steps,tstep)
 
-           # calculate the orbit
-           s = track(s,v,tstep)
+       #ODE INTEGRATOR
+       sol = odeint(ode_equ,ini_y0,tsol,
+                    args=(ini.fr,ini.fz,ini.equ['rcentr'],ini.equ['bcentr'],ini.charge,ini.mass))
 
-           # 20170327 calculate local bt
-           sr,sz,sphi = lib.xyz_to_rzphi(s[0],s[1],s[2])
-           bt = bfield.brzt(sr,sz,sphi,ini)
+       # determine hitting points
+       tmplower =  np.sign(
+          geo.lphoreq[0]*sol[:,0] +
+          geo.lphoreq[1]*sol[:,1] +
+          geo.lphoreq[2]*sol[:,2] +
+          geo.lphoreq[3]
+          )
+       #tmpupper =  np.sign(
+       #   geo.uphoreq[0]*sol[:,0] +
+       #   geo.uphoreq[1]*sol[:,1] +
+       #   geo.uphoreq[2]*sol[:,2] +
+       #   geo.uphoreq[3]
+       #   )
 
-           a = acce(v, bt)
-           v = velo(v, a, tstep)
-           s_hist[i,:] = s
-           s_histx[mc,i,:] = s
-           a_hist[i,:] = a
-           v_hist[i,:] = v
-           bt_hist[i,:] = bt
-
-           # Judge whether hit the sintillator or not
-           if i > 900:
-              hitornot1 = \
-              geo.lphoreq[0]*s_hist[i-1,0]+ \
-              geo.lphoreq[1]*s_hist[i-1,1]+ \
-              geo.lphoreq[2]*s_hist[i-1,2]+ \
-              geo.lphoreq[3]
-
-              hitornot2 = \
-              geo.lphoreq[0]*s_hist[i,0]+ \
-              geo.lphoreq[1]*s_hist[i,1]+ \
-              geo.lphoreq[2]*s_hist[i,2]+ \
-              geo.lphoreq[3]
-
-              # if two neighbour points are locating at
-              # two sides of the foil plane, it will be
-              # considered as that one collision occurs
-              if hitornot1*hitornot2<0:
-                 strike_pos[mc,:]  = s
-
-#             if switch_real_img == 1:
-#                light[mc] = E_energy
-
-                 break;
-
+       hit_index = np.where(np.diff(tmplower))[0][1]
+       strike_pos[mc,:] = sol[hit_index,0:3]
 
     # structure for output
     res = creatobj.result(R_ini,-1.0*np.cos(P_ini/180.*np.pi),E_ini)
+    res.sol = sol
     res.hitpoint = strike_pos
     res.birthsl = birth_sl
     return res

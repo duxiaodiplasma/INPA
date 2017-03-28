@@ -36,7 +36,7 @@ import numpy as np
 from scipy import interpolate
 import sys
 
-def brzt(lr,lz,phi,fn):
+def prepare(fn):
 
    # read gfile
    res = geqdsk.read(fn)
@@ -68,6 +68,14 @@ def brzt(lr,lz,phi,fn):
 
    fr = interpolate.interp2d(zz, rr, dpsi_dr, kind='cubic')
    fz = interpolate.interp2d(zz, rr, dpsi_dz, kind='cubic')
+   return fr,fz,res
+
+
+def brzt(lr,lz,phi,ini):
+   fr = ini.fr
+   fz = ini.fz
+   rc = ini.equ['rcentr']
+   bc = ini.equ['bcentr']
 
    # local magnetic field strength
    l_dpsir = fr(lz,lr)
@@ -83,8 +91,7 @@ def brzt(lr,lz,phi,fn):
    # rz coordinate to xyz coordinate
    bx = -1.0*bt*np.cos(phi)-br*np.sin(phi)
    by = -1.0*bt*np.sin(phi)+br*np.cos(phi)
-   bz = bz
-   # print(bx,by,bz)
+   bz = np.copy(bz)
 
    return np.concatenate([bx, by, bz])
 

@@ -5,7 +5,7 @@ import bfield
 #from matplotlib import cm
 #import matplotlib.pyplot as plt
 
-def main(p0,p1,gfile):
+def main(p0,p1,ini):
 
 # --- input zone ---
    # source location
@@ -22,7 +22,7 @@ def main(p0,p1,gfile):
 
    # b_field at r_loc
    lr,lz,lphi = lib.xyz_to_rzphi(r_loc[0],r_loc[1],r_loc[2])
-   b_loc = bfield.brzt(lr,lz,lphi,gfile)
+   b_loc = bfield.brzt(lr,lz,lphi,ini)
 
    # pitch angle between sightline and magnetic field
    pitch_loc = lib.angle_between(p1-p0,b_loc)/np.pi*180.

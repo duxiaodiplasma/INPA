@@ -59,4 +59,10 @@ class ini(object):
         self.Emax = Emax
         self.gfile = gfile
 
+class result(object):
+    def __init__(self,R_birth,P_birth,E_birth):
+        self.R_birth = R_birth
+        self.P_birth = P_birth
+        self.E_birth = E_birth
+
 

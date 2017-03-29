@@ -188,7 +188,11 @@ def ode_equ(s,t,fr,fz,rc,bc,charge,mass):
 '''MAIN Program'''
 '''--------------'''
 def main(geo,ini):
-    # --- INPUT ZONE ---
+
+    # hard coded for duterium only!
+    ini.charge = 1.6*(1e-19)
+    ini.mass = 2*1.67*(1e-27)
+
     # number of monte carlo particles
     mc_num = ini.mc
     tstep = ini.tstep

@@ -68,7 +68,12 @@ def prepare(fn):
 
    fr = interpolate.interp2d(zz, rr, dpsi_dr, kind='cubic')
    fz = interpolate.interp2d(zz, rr, dpsi_dz, kind='cubic')
-   return fr,fz,res
+
+   sibry = res['sibry']
+   simag = res['simag']
+   psirz = np.array((psirz-simag)/(sibry-simag))
+   fpsi = interpolate.interp2d(zz, rr, psirz, kind='cubic')
+   return fr,fz,fpsi,res,rr,zz,psirz
 
 
 def brzt(lr,lz,phi,ini):

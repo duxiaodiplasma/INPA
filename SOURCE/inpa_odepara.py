@@ -303,11 +303,11 @@ if __name__ == '__main__':
    output = Parallel(n_jobs=ini.cores)(delayed(PARA_mc)(i) \
             for i in range(0,ini.mc) \
             )
-for i in range(0,ini.mc):
-    R_ini[i,:] = output[i][0]
-    P_ini[i] = output[i][1]
-    E_ini[i] = output[i][2]
-    strike_pos[i,:] = output[i][3]
+   for i in range(0,ini.mc):
+       R_ini[i,:] = output[i][0]
+       P_ini[i] = output[i][1]
+       E_ini[i] = output[i][2]
+       strike_pos[i,:] = output[i][3]
 
 # structure for output
 res = creatobj.result(R_ini,-1.0*np.cos(P_ini/180.*np.pi),E_ini)

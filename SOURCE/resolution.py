@@ -21,7 +21,10 @@ def main(ini,res):
 
     # calculate local psi
     psi_seg = np.zeros((ini.mc,segs))
+
     # rho resolution
+    rho = np.zeros((ini.mc,segs))
+    rhoavg = np.zeros(ini.mc)
     drho = np.zeros(ini.mc)
 
     # pitch resolution
@@ -33,21 +36,28 @@ def main(ini,res):
     vb = np.zeros((ini.mc,segs,3))
     # ??
     pitch = np.zeros((ini.mc,segs))
+    pitchavg = np.zeros(ini.mc)
 
     for i in np.arange(ini.mc):
         for j in np.arange(segs):
             psi_seg[i,j] = ini.fpsi(rz_seg[i,j,1],rz_seg[i,j,0])
+            rho[i,j] = np.sqrt(psi_seg[i,j])
             vb[i,j,:] = bfield.brzt(rz_seg[i,j,0],rz_seg[i,j,1],rz_seg[i,j,2],ini)
             pitch[i,j] = lib.angle_between(vb[i,j,:], res.birthsl[i,1,:]-res.birthsl[i,0,:])
 
-    R_mid_avg[i] = np.mean(rz_seg[i,:,0])
-    drho[i] = np.amax(np.sqrt(psi_seg[i,:]))-np.amin(np.sqrt(psi_seg[i,:]))
-    dpitch[i] = np.amax(pitch[i,:]) - np.amin(pitch[i,:])
+        R_mid_avg[i] = np.mean(rz_seg[i,:,0])
+        rhoavg[i] = np.mean(rho[i,:])
+        pitchavg[i] = np.mean(pitch[i,:])
+        drho[i] = np.amax(np.sqrt(psi_seg[i,:]))-np.amin(np.sqrt(psi_seg[i,:]))
+        dpitch[i] = np.amax(pitch[i,:]) - np.amin(pitch[i,:])
 
+    res.rho = rhoavg
     res.rho_eb = drho
+
+    res.pitch = pitchavg
     res.pitch_eb = drho
+
     res.rzseg = rz_seg
-    res.pitch = pitch
     res.segs = segs
     return res
 

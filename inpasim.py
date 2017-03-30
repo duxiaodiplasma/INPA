@@ -9,10 +9,11 @@ import inpa
 import inpa_ode
 import doplot
 import geometry
+import resolution
 
 fpath = '/home/duxiaodi/inpa/GFILE/159243C04_801.geq'
 #  -- INPUT --     mc,  tstep, steps, Eini, Emax, gfile
-ini = creatobj.ini(3000, 1e-11, 10000,  20,  80,  fpath)
+ini = creatobj.ini(100000, 1e-11, 10000,  20,  80,  fpath)
 
 # -- EQUILIBRIUM --
 ini.fr,ini.fz,ini.fpsi,ini.equ,ini.r,ini.z,ini.psirz \

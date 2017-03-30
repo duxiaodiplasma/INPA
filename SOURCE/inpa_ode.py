@@ -204,13 +204,6 @@ def main(geo,ini):
     # inital energy
     E_ini = np.zeros(mc_num)
 
-    # record everthing in history of one particle
-    s_hist = np.zeros((steps,3))
-    s_histx = np.zeros((mc_num,steps,3))
-    a_hist = np.zeros((steps,3))
-    v_hist = np.zeros((steps,3))
-    bt_hist = np.zeros((steps,3))
-
     # birth sightline
     birth_sl = np.zeros((mc_num,2,3))
 

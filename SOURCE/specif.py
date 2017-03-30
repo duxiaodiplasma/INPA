@@ -25,7 +25,8 @@ def main(p0,p1,ini):
    b_loc = bfield.brzt(lr,lz,lphi,ini)
 
    # pitch angle between sightline and magnetic field
-   pitch_loc = lib.angle_between(p1-p0,b_loc)/np.pi*180.
+   pitch_loc = lib.angle_between(p1-p0,b_loc)
+
 
    return np.asarray([lr,lz]), pitch_loc
 

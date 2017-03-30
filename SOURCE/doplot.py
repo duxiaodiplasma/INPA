@@ -37,9 +37,15 @@ def sp(geo,res):
 
 def reso(ini,res):
     fig = plt.figure()
-    levels = np.linspace(0,1,res.segs)
-    cs = plt.contour(ini.r,ini.z,np.sqrt(np.transpose(ini.psirz)),levels,vmin=0,vmax=1)
-    cb = plt.colorbar(cs, shrink=0.8, extend='both',ticks=levels[0::2])
+    levels=[0,0.2,0.4,0.6,0.8,1.0]
+    rho = res.rho
+    rhomin = res.rhomin
+    rhomax = res.rhomax
+
+    sc = plt.contour(rhomin[1][0:100],rhomin[2][0:100],rhomin[0].T,levels=levels,linewidth=40)
+    sc = plt.contour(rho[1][0:100],rho[2][0:100],rho[0].T,levels=levels,linewidth=40)
+    sc = plt.contour(rhomax[1][0:100],rhomax[2][0:100],rhomax[0].T,levels=levels,linewidth=4)
+    cb=plt.colorbar(sc)
 
 
     plt.clabel(cs, levels[0::2], inline=1, fontsize=10)

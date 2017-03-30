@@ -1,46 +1,46 @@
 """
-;+
-; NAME:
-;     INPA SIMULATION
-; PURPOSE:
-      This Monte Carlo code calculates the orbit from carbon foil to the scintillator
-; EXPLANATION:
-      The neutral are randomly generated from plasma following the rules:
-      (1) The energy of the neutral is randomly generated from 0keV to 80keV
-      (2) The direction of neutral flying is randomly vector between one point
-	  in aperture and the other in carbon foil.
-      (3) The initial velocity [vx,vy,vz] is then determined.
-      (4) The larmor motion of the particle is then traced until it hits
-          the scintillator, i.e.,vz(t0)*vz(t0+dt)<0.
-;
-; CALLING SEQUENCE:
-        def geometry() in design.py is depenedent file
-#;
-; OPTIONAL INPUT:
-;
-; OPTIONAL KEYWORD INPUT:
-;
-; OPTIONAL KEYWORD OUTPUTS:
++
+ NAME:
+     INPA SIMULATION
+ PURPOSE:
+     This Monte Carlo code calculates the orbit from carbon foil to the scintillator
+ EXPLANATION:
+     The neutral are randomly generated from plasma following the rules:
+     (1) The energy of the neutral is randomly generated from 0keV to 80keV
+     (2) The direction of neutral flying is randomly vector between one point
+     in aperture and the other in carbon foil.
+     (3) The initial velocity [vx,vy,vz] is then determined.
+     (4) The larmor motion of the particle is then traced until it hits
+         the scintillator, i.e.,vz(t0)*vz(t0+dt)<0.
 
-; PROCEDURE:
+ CALLING SEQUENCE:
+       def geometry() in design.py is depenedent file
 
-; EXAMPLE:
-       run inpa.py
-; RESTRICTIONS:
-;
-; PROCEDURES USED:
-;
-; REVISION HISTORY:
-      first usable version is inpa_v2.py
-		by DU,Xiaodi on 08-09-2016
+ OPTIONAL INPUT:
 
-      change the design function purely 3D
-	     design.geometry_3d(la, lb, lc)
-		by DU,Xiaodi on 08-16-2016
+ OPTIONAL KEYWORD INPUT:
 
-      add a routine to generate the input file of NPA GEOMETRY for FIDASIM
-	     output4_fidasim.input(p1,p2,p3,p4,f1,f2,f3,f4,w,h)
-		by DU,Xiaodi on 11-3-2016
+ OPTIONAL KEYWORD OUTPUTS:
+
+ PROCEDURE:
+
+ EXAMPLE:
+      run inpa.py
+ RESTRICTIONS:
+
+ PROCEDURES USED:
+
+ REVISION HISTORY:
+     first usable version is inpa_v2.py
+   	by DU,Xiaodi on 08-09-2016
+
+     change the design function purely 3D
+        design.geometry_3d(la, lb, lc)
+   	by DU,Xiaodi on 08-16-2016
+
+     add a routine to generate the input file of NPA GEOMETRY for FIDASIM
+        output4_fidasim.input(p1,p2,p3,p4,f1,f2,f3,f4,w,h)
+   	by DU,Xiaodi on 11-3-2016
 
 """
 import sys
@@ -57,7 +57,6 @@ import read_hd5
 import particle_launcher
 import numpy as np
 from scipy.integrate import odeint
-from joblib import Parallel, delayed
 
 '''particle location at t+dt'''
 def track(s_t0, v, tstep):
@@ -88,7 +87,7 @@ def random_3d(p0,p1):
 
 
 '''initial position on scintillator'''
-def initial_pos(geo,ini):
+def initials(geo,ini):
 
     p1 = geo.pinhole[0,:]
     p2 = geo.pinhole[1,:]
@@ -123,17 +122,6 @@ def initial_pos(geo,ini):
     bt = bfield.brzt(lr,lz,lphi,ini)
 
     return n0_p, n0_f, bt, r_loc, pitch_loc
-
-'''
-    initial energy of neutrals
-'''
-def initial_E(ini):
-    # initial energy [keV]
-    Eth  = ini.Emin
-    Enbi = ini.Emax
-    E_energy =Eth + (Enbi-Eth)*np.random.random(1) #keV
-
-    return E_energy
 
 
 '''initial velocity of neutrals'''
@@ -185,29 +173,29 @@ def ode_equ(s,t,fr,fz,rc,bc,charge,mass):
 
     return np.array([vx,vy,vz,ax,ay,az])
 
-def dummy_input(ini,geo):
-    return ini,geo
+# -- RANDOM NUMBER GENERATOR FOR PARALLEL CALCULATION --
+def RNG(ini,geo):
+    ini.n0_p = np.zeros((ini.mc,3))
+    ini.n0_f = np.zeros((ini.mc,3))
+    ini.B_birth = np.zeros((ini.mc,3))
+    ini.R_birth = np.zeros((ini.mc,2))
+    ini.P_birth = np.zeros(ini.mc)
+    ini.E_birth = np.random.uniform(ini.Emin,ini.Emax,size=ini.mc)
 
-def PARA_mc(i):
-    #ini,geo = dummy_input(ini,geo)
-    # initial energy
-    E_ini = initial_E(ini)
+    for i in range(0,ini.mc):
+        ini.n0_p[i,:], ini.n0_f[i,:], ini.B_birth[i,:], ini.R_birth[i], ini.P_birth[i] \
+         = initials(geo,ini)
+    return ini
 
-    # generate initail values for orbit tracing
-    n0_p, n0_f, bt, R_ini, P_ini \
- 	 = initial_pos(geo,ini)
+# -- PARALLEL CALCULATION -- #
+def PARA_mc(ini,geo,i):
+
+    # initail conditions for orbit tracing
+    n0_p, n0_f, E_ini \
+ 	= ini.n0_p[i,:], ini.n0_f[i,:], ini.E_birth[i]
 
     # initial velocity in xyz coordinate
     v_ini = initial_v(E_ini,n0_p,n0_f)
-
-    # birth place at the pinhole and foil
-    #birth_sl[mc,0,:] = np.array(n0_p)
-    #birth_sl[mc,1,:] = np.array(n0_f)
-
-    # birth place of R, pitch, and Energy
-    #R_ini[mc,:] = r_loc
-    #P_ini[mc] = pitch_loc
-    #E_ini[mc] = E_energy
 
     # -----------------------
     #     solve ode         |
@@ -216,11 +204,13 @@ def PARA_mc(i):
     ini_y0 = np.concatenate((n0_f,v_ini))
 
     # time slices for integrator
+    tstep = np.copy(ini.tstep)
+    steps = np.copy(ini.steps)
     tsol = np.arange(0,tstep*steps,tstep)
 
     #ODE INTEGRATOR
     sol = odeint(ode_equ,ini_y0,tsol,
-                 args=(ini.fr,ini.fz,ini.equ['rcentr'],ini.equ['bcentr'],ini.charge,ini.mass))
+          args=(ini.fr,ini.fz,ini.equ['rcentr'],ini.equ['bcentr'],ini.charge,ini.mass))
 
     # determine hitting points
     tmplower =  np.sign(
@@ -237,82 +227,5 @@ def PARA_mc(i):
        #   geo.uphoreq[2]*sol[:,2] +
        #   geo.uphoreq[3]
        #   )
-    return R_ini, P_ini, E_ini, hit_point
-
-'''--------------'''
-'''MAIN Program'''
-'''--------------'''
-
-# -- test various geometry --
-import geometry
-import geometry_failed3
-import geometry_upgrade
-import geometry_upgrade2
-import geometry_upgrade3
-
-fpath = '/home/duxiaodi/inpa/GFILE/159243C04_801.geq'
-#  -- INPUT --     mc,  tstep, steps, Eini, Emax, gfile
-ini = creatobj.ini(5000, 1e-11, 10000,  20,  80,  fpath)
-ini.charge = 1.6*(1e-19) # D charge
-ini.mass = 2*1.67*(1e-27)# D mass
-
-# -- EQUILIBRIUM --
-ini.fr,ini.fz,ini.equ = bfield.prepare(ini.gfile)
-
-# -- INPA GEOMETRY --
-geo = geometry_failed3.main()
-
-# -- CALL MAIN --
-ini.cores = 10
-
-
-# --- INPUT ZONE ---
-# number of monte carlo particles
-ini.mc = ini.mc
-tstep = ini.tstep
-steps = ini.steps
-
-# inital R position
-R_ini = np.zeros((ini.mc,2))
-
-# inital pitch
-P_ini = np.zeros(ini.mc)
-
-# inital energy
-E_ini = np.zeros(ini.mc)
-
-# record everthing in history of one particle
-s_hist = np.zeros((steps,3))
-s_histx = np.zeros((ini.mc,steps,3))
-a_hist = np.zeros((steps,3))
-v_hist = np.zeros((steps,3))
-bt_hist = np.zeros((steps,3))
-
-# birth sightline
-birth_sl = np.zeros((ini.mc,2,3))
-
-# position of striking points
-strike_pos = np.zeros((ini.mc,3))
-
-# light emission on scintillator
-light = np.zeros(ini.mc)
-
-if __name__ == '__main__':
-   ini,geo = dummy_input(ini,geo)
-   #R_ini[i,:],P_ini[i],E_ini[i],strike_pos[i,:] = \
-   output = Parallel(n_jobs=ini.cores)(delayed(PARA_mc)(i) \
-            for i in range(0,ini.mc) \
-            )
-   for i in range(0,ini.mc):
-       R_ini[i,:] = output[i][0]
-       P_ini[i] = output[i][1]
-       E_ini[i] = output[i][2]
-       strike_pos[i,:] = output[i][3]
-
-# structure for output
-res = creatobj.result(R_ini,-1.0*np.cos(P_ini/180.*np.pi),E_ini)
-res.hitpoint = strike_pos
-res.birthsl = birth_sl
-
-
+    return hit_point
 

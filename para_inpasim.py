@@ -14,7 +14,7 @@ from joblib import Parallel, delayed
 
 fpath = '/home/duxiaodi/inpa/GFILE/159243C04_801.geq'
 #  -- INPUT --     mc,  tstep, steps, Eini, Emax, gfile
-ini = creatobj.ini(5000, 1e-11, 10000,  20,  80,  fpath)
+ini = creatobj.ini(50000, 1e-11, 10000,  20,  80,  fpath)
 ini.charge = 1.6*(1e-19) # D charge
 ini.mass = 2*1.67*(1e-27)# D mass
 ini.cores = 10 # CPU CORES
@@ -32,7 +32,7 @@ ini = inpa_odepara.RNG(ini,geo)
 # -- PREPARE OUTPUT --
 res = creatobj.result(ini.R_birth,-1.0*np.cos(ini.P_birth),ini.E_birth)
 res.hitpoint = np.zeros((ini.mc,3))
-res.birth_sl = np.zeros((ini.mc,2,3))
+res.birthsl = np.zeros((ini.mc,2,3))
 
 # ---------------------- #
 #  parallel calculation  #
@@ -43,8 +43,15 @@ if __name__ == '__main__':
 
 for i in range(0,ini.mc):
     res.hitpoint[i,:] = output[i]
-    res.birth_sl[i,0,:] = ini.n0_p[i,:]
-    res.birth_sl[i,1,:] = ini.n0_f[i,:]
+    res.birthsl[i,0,:] = ini.n0_p[i,:]
+    res.birthsl[i,1,:] = ini.n0_f[i,:]
+
+# transfer plane from 3D to 2D
+geo,res = lib.rot_geometry(ini,geo,res)
+
+# calculate the resolution
+res = resolution.main(ini,res)
+
 
 
 

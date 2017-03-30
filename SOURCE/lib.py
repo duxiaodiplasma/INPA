@@ -172,3 +172,32 @@ def rotation_matrix(axis, theta):
                      [2*(bc-ad), aa+cc-bb-dd, 2*(cd+ab)],
                      [2*(bd+ac), 2*(cd-ab), aa+dd-bb-cc]])
 
+
+def rot_geometry(ini,geo,res):
+    geo.nv = geo.uphoreq[0:3]
+    geo.targetnv = [0,1,0]
+    axis = np.cross(geo.nv, geo.targetnv)
+    angle = angle_between(geo.nv,geo.targetnv)
+
+    # rotation matrix
+    matrix = rotation_matrix(axis,angle)
+
+    res.rot_hitpoint = np.zeros((ini.mc,3))
+    for i in range(0,ini.mc):
+        res.rot_hitpoint[i,:] = np.dot(matrix,res.hitpoint[i,:])
+
+    # rotating phorsphor, pinhole
+    geo.rot_lphor = np.zeros((4,3))
+    geo.rot_uphor = np.zeros((4,3))
+    geo.rot_pinhole = np.zeros((4,3))
+    for i in range(0,4):
+        geo.rot_lphor[i,:] = np.dot(matrix,geo.lphor[i,:])
+        geo.rot_uphor[i,:] = np.dot(matrix,geo.uphor[i,:])
+        geo.rot_pinhole[i,:] = np.dot(matrix,geo.pinhole[i,:])
+
+    geo.rot_foil = np.zeros((1,4,3))
+    for i in range(0,4):
+        geo.rot_foil[0,i,:] = np.dot(matrix,geo.foil[0,i,:])
+
+    return geo,res
+

@@ -2,17 +2,15 @@ import numpy as np
 import fbw
 import lib
 import bfield
+from scipy.stats import binned_statistic_2d
 
 
-def main(ini,res):
+def get_rprange(ini,res):
     # segments of each birth sightline
     segs = 21
 
     # segments between crossing points of NB
     rz_seg = np.zeros((ini.mc,segs,3))
-
-    #??
-    vsl = np.zeros((ini.mc,segs,3))
 
     for i in np.arange(ini.mc):
         n0_p = res.birthsl[i,0,:]
@@ -62,34 +60,24 @@ def main(ini,res):
     return res
 
 
+def main(ini,res):
 
-# -- split line --
-# plot results
-#fig = plt.figure()
-#levels = np.linspace(0,1,21)
-#cs = plt.contour(rr,zz,np.sqrt(np.transpose(psirz)),levels)
-#cb = plt.colorbar(cs, shrink=0.8, extend='both',ticks=levels[0::2])
-#
-#
-##plt.clabel(cs, levels[0::2], inline=1, fontsize=10)
-#for i in np.arange(100):
-#    plt.plot(rz_seg[i,:,0], rz_seg[i,:,1])
-#
+    res = get_rprange(ini,res)
+    res.bins = [20,50]
 
-#f, axarr = plt.subplots(2)
-#levels = np.linspace(0,1,21)
-#cs = axarr[0].contour(rr,zz,np.sqrt(np.transpose(psirz)),levels)
-##cb = colorbar(cs, shrink=0.8, extend='both',ticks=levels[0::2])
-#
-#
-##plt.clabel(cs, levels[0::2], inline=1, fontsize=10)
-#for i in np.arange(300):
-#    axarr[0].plot(rz_seg[i,:,0], rz_seg[i,:,1])
-#    axarr[1].plot(rz_seg[i,:,0],pitch[i,:]/np.pi*180)
-#
-#axarr[1].set_xlabel('R[m]')
-#axarr[1].set_ylabel('pitch angle [degree]')
-##plt.xlim(1.1,2.5)
-##plt.ylim(-1.6,1.6)
+    res.rhomax = binned_statistic_2d(res.rot_hitpoint[:,0],res.rot_hitpoint[:,2],
+                   res.rho,bins=res.bins,statistic=np.std+np.mean)
+    res.rhomin = binned_statistic_2d(res.rot_hitpoint[:,0],res.rot_hitpoint[:,2],
+                   res.rho,bins=res.bins,statistic=np.min)
+    res.rho = binned_statistic_2d(res.rot_hitpoint[:,0],res.rot_hitpoint[:,2],
+                res.rho,bins=res.bins,statistic=np.mean)
+
+    res.dE = binned_statistic_2d(res.rot_hitpoint[:,0],res.rot_hitpoint[:,2],
+                   res.E_birth,bins=res.bins,statistic=np.mean)
+    res.dEmin = binned_statistic_2d(res.rot_hitpoint[:,0],res.rot_hitpoint[:,2],
+                   res.E_birth,bins=res.bins,statistic=np.min)
+    res.dEmax = binned_statistic_2d(res.rot_hitpoint[:,0],res.rot_hitpoint[:,2],
+                   res.E_birth,bins=res.bins,statistic=np.max)
+    return res
 
 

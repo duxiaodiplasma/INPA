@@ -17,7 +17,8 @@ def orbit3d(geo,res):
 def sp2d(geo,res):
     plt.clf()
 
-    sc = plt.scatter(res.rot_hitpoint[:,0],res.rot_hitpoint[:,2],c=res.E_birth,alpha=0.5)
+    #sc = plt.scatter(res.rot_hitpoint[:,0],res.rot_hitpoint[:,2],c=res.E_birth,alpha=0.5)
+    sc = plt.scatter(res.rot_hitpoint[:,0],res.rot_hitpoint[:,2],c=res.rho,alpha=0.5)
     plt.plot(geo.rot_foil[0,:,0],geo.rot_foil[0,:,2],alpha=0.5)
     plt.plot(geo.rot_lphor[:,0],geo.rot_lphor[:,2],alpha=0.5)
     cb = plt.colorbar(sc)
@@ -48,9 +49,9 @@ def sp3d(geo,res):
 def dr_resolution(ini,res):
     fig = plt.figure(1)
     levels=[0,0.2,0.4,0.6,0.8,1.0]
-    rho = res.rho
-    rhomin = res.rhomin
-    rhomax = res.rhomax
+    rho = res.drho
+    rhomin = res.drhomin
+    rhomax = res.drhomax
 
     sc = plt.contour(rhomin[1][0:res.bins[0]],rhomin[2][0:res.bins[1]],
                     rhomin[0].T,levels=levels,linewidth=40)
@@ -64,8 +65,7 @@ def dr_resolution(ini,res):
     return 'SPATIAL RESOLUTION'
 
 def dE_resolution(ini,res):
-    plt.clf()
-    fig = plt.figure(1)
+    fig = plt.figure(2)
     dE = res.dE
     dEmin = res.dEmin
     dEmax = res.dEmax

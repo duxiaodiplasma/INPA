@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.gridspec as gridspec
 
 def orbit3d(geo,res):
     fig = plt.figure()
@@ -54,7 +55,7 @@ def sp3d(geo,res):
 
 def dr_resolution(ini,geo,res):
     fig = plt.figure(1)
-    levels=[0.05,0.15,0.35,0.65,0.95]
+    levels=[0.1,0.3,0.5,0.7,0.9]
     rho = res.drho
     rhomin = res.drhomin
     rhomax = res.drhomax
@@ -84,7 +85,7 @@ def dE_resolution(ini,geo,res):
     dE = res.dE
     dEmin = res.dEmin
     dEmax = res.dEmax
-    levels = [25,40,55,70]
+    levels = [30,45,60,75]
 
     rot_foil = np.vstack((geo.rot_foil[0,:,:],geo.rot_foil[0,0,:]))
     rot_pinhole = np.vstack((geo.rot_pinhole,geo.rot_pinhole[0,:]))
@@ -105,17 +106,6 @@ def dE_resolution(ini,geo,res):
     plt.xlabel('x[m]')
     plt.ylabel('y[m]')
     return 'ENERGY RESOLUTION'
-
-    #f, axarr = plt.subplots(2)
-    #levels = np.linspace(0,1,21)
-    #cs = axarr[0].contour(rr,zz,np.sqrt(np.transpose(psirz)),levels)
-    ##cb = colorbar(cs, shrink=0.8, extend='both',ticks=levels[0::2])
-    #
-    #
-    ##plt.clabel(cs, levels[0::2], inline=1, fontsize=10)
-    #for i in np.arange(300):
-    #    axarr[0].plot(rz_seg[i,:,0], rz_seg[i,:,1])
-    #    axarr[1].plot(rz_seg[i,:,0],pitch[i,:]/np.pi*180
 
 def grid(ini,geo,res):
     fig = plt.figure(1)
@@ -142,3 +132,104 @@ def grid(ini,geo,res):
     plt.xlabel('x[m]')
     plt.ylabel('y[m]')
     return 'SPATIAL RESOLUTION'
+
+def all(ini,geo,res):
+    plt.rcParams['figure.figsize'] = (8,8)
+    fig = plt.figure(figsize=(8,8))
+    gs = gridspec.GridSpec(100,100)
+    ax0 = plt.subplot(gs[5:35,10:65])
+    ax1 = plt.subplot(gs[35:65,10:65])
+    ax2 = plt.subplot(gs[65:95,10:65])
+
+    rot_foil = np.vstack((geo.rot_foil[0,:,:],geo.rot_foil[0,0,:]))
+    rot_pinhole = np.vstack((geo.rot_pinhole,geo.rot_pinhole[0,:]))
+    rot_lphor = np.vstack((geo.rot_lphor,geo.rot_lphor[0,:]))
+    ax0.plot(rot_foil[:,0],rot_foil[:,1],alpha=0.5)
+    ax0.plot(rot_lphor[:,0],rot_lphor[:,1],alpha=0.5)
+    ax0.plot(rot_pinhole[:,0],rot_pinhole[:,1],alpha=0.5)
+
+    ax1.plot(rot_foil[:,0],rot_foil[:,1],alpha=0.5)
+    ax1.plot(rot_lphor[:,0],rot_lphor[:,1],alpha=0.5)
+    ax1.plot(rot_pinhole[:,0],rot_pinhole[:,1],alpha=0.5)
+
+    ax2.plot(rot_foil[:,0],rot_foil[:,1],alpha=0.5)
+    ax2.plot(rot_lphor[:,0],rot_lphor[:,1],alpha=0.5)
+    ax2.plot(rot_pinhole[:,0],rot_pinhole[:,1],alpha=0.5)
+
+    rho = res.drho
+    rhomin = res.drhomin
+    rhomax = res.drhomax
+
+    rot_foil = np.vstack((geo.rot_foil[0,:,:],geo.rot_foil[0,0,:]))
+    rot_pinhole = np.vstack((geo.rot_pinhole,geo.rot_pinhole[0,:]))
+    rot_lphor = np.vstack((geo.rot_lphor,geo.rot_lphor[0,:]))
+
+    dE = res.dE
+    dEmin = res.dEmin
+    dEmax = res.dEmax
+
+    levels_rho = [0.1,0.3,0.5,0.7,0.9]
+    sc = ax0.contour(rhomin[1][0:res.bins[0]],rhomin[2][0:res.bins[1]],
+                    rhomin[0].T,levels=levels_rho,linewidth=40)
+    #plt.colorbar(sc,use_gridspec=True)
+    ax0.contour(rhomax[1][0:res.bins[0]],rhomax[2][0:res.bins[1]],
+                    rhomax[0].T,levels=levels_rho,linewidth=4)
+
+    levels_E = [25,40,55,70]
+    sc1=ax1.contour(dEmin[1][0:res.bins[0]],dEmin[2][0:res.bins[1]],
+                    dEmin[0].T,levels=levels_E,linewidth=40)
+
+    ax1.contour(dEmax[1][0:res.bins[0]],dEmax[2][0:res.bins[1]],
+                    dEmax[0].T,levels=levels_E,linewidth=40)
+
+    ax2.contour(rho[1][0:res.bins[0]],rho[2][0:res.bins[1]],
+                    rho[0].T,levels=levels_rho,linewidth=40)
+
+    ax2.contour(dE[1][0:res.bins[0]],dE[2][0:res.bins[1]],
+                    dE[0].T,levels=levels_E,linewidth=40)
+
+    ax2.set_xlabel('x[m]')
+    ax0.set_ylabel('y[m]')
+    ax1.set_ylabel('y[m]')
+    ax2.set_ylabel('y[m]')
+
+    # and transform them after to get the ABSOLUTE POSITION AND DIMENSIONS
+    x0, y0, width, height = [1.2, 0.5, 0.5, 0.1]
+    fig.tight_layout()
+    import matplotlib
+    Bbox = matplotlib.transforms.Bbox.from_bounds(x0, y0, width, height)
+    trans = ax0.transAxes + fig.transFigure.inverted()
+    l, b, w, h = matplotlib.transforms.TransformedBbox(Bbox, trans).bounds
+    # Now just create the axes and the colorbar
+    cbaxes = fig.add_axes([l, b, w, h])
+    cbar = plt.colorbar(sc, cax=cbaxes, orientation='horizontal')
+    cbar.ax.tick_params(labelsize=9)
+
+    trans = ax1.transAxes + fig.transFigure.inverted()
+    l, b, w, h = matplotlib.transforms.TransformedBbox(Bbox, trans).bounds
+    # Now just create the axes and the colorbar
+    cbaxes = fig.add_axes([l, b, w, h])
+    cbar = plt.colorbar(sc1, cax=cbaxes, orientation='horizontal')
+    cbar.ax.tick_params(labelsize=9)
+
+    import time
+    comment0 = 'INPASIM '
+    comment1 =  time.strftime("%c")+' BY X.D. Du'
+    comment2 = 'Filename: ' + np.str(ini.fn)
+    comment3 = 'Comment: ' + np.str(ini.comment)
+    comment4 =  np.str(ini.gfile)
+    #comment4 = '$\\tau$ = ' + np.str(a.Tau) + ' [ms]'
+    #comment5 = '$\\tilde{S}$ = ' + np.str(np.abs(a.S[0]))
+    #comment6 = 'wavelength from ' + np.str(wl[0]/10.)+' to '+np.str(wl[1]/10.) + ' [nm]'
+    plt.text(1.02, 0.8, comment0, ha='left', va='center', transform=ax2.transAxes,fontsize=9.0)
+    plt.text(1.02, 0.7, comment1, ha='left', va='center', transform=ax2.transAxes,fontsize=9.0)
+    plt.text(1.02, 0.5, comment2, ha='left', va='center', transform=ax2.transAxes,fontsize=9.0)
+    plt.text(1.02, 0.4,comment3, ha='left', va='center', transform=ax2.transAxes,fontsize=9.0)
+    plt.text(1.02, 0.25, comment4, ha='left', va='center', transform=ax2.transAxes,fontsize=8.0)
+    #plt.text(1.05, 0.2,comment5, ha='left', va='center', transform=ax2.transAxes,fontsize=10.0)
+    #plt.text(1.05, 0.1, comment6, ha='left', va='center', transform=ax2.transAxes,fontsize=10.0)
+    fig.savefig(ini.fn+'.ps',dpi=fig.dpi)
+    import os
+    return 'file save in: '+os.getcwd()+'/'+ini.fn
+
+

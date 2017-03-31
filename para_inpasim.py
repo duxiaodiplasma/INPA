@@ -9,7 +9,6 @@ from joblib import Parallel, delayed
 import creatobj
 import bfield
 import inpa_odepara
-#import doplot
 import geometry
 import resolution
 import lib
@@ -17,8 +16,9 @@ import lib
 
 fpath = '/home/duxiaodi/inpa/GFILE/159243C04_801.geq'
 #  -- INPUT --     mc,  tstep, steps, Eini, Emax, gfile
-ini = creatobj.ini(10000, 1e-11, 10000,  20,  80,  fpath)
-ini.fn = 'tmp.pickle'
+ini = creatobj.ini(120000, 1e-11, 10000,  20,  80,  fpath)
+ini.fn = '55mmh.pickle'
+ini.comment = '5mm*5mm slit, 5mm-tall foil'
 
 ini.charge = 1.6*(1e-19) # D charge
 ini.mass = 2*1.67*(1e-27)# D mass
@@ -57,12 +57,9 @@ geo,res = lib.rot_geometry(ini,geo,res)
 # calculate the resolution
 res = resolution.main(ini,res)
 
-
 with open(ini.fn, 'w') as f:
      pickle.dump([ini,geo,res],f)
 
-#with open(ini.fn) as f:
-#     ini,geo,res = pickle.load(f)
 
 
 

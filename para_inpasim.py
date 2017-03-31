@@ -2,25 +2,27 @@ import sys
 sys.path.insert(0,'/home/duxiaodi/inpa/SOURCE')
 sys.path.insert(0,'/home/duxiaodi/inpa/GEOMETRY')
 sys.path.insert(0,'/home/duxiaodi/inpa/PLOT')
+import numpy as np
+import pickle
+from joblib import Parallel, delayed
+
 import creatobj
 import bfield
-import numpy as np
 import inpa_odepara
-import doplot
+#import doplot
 import geometry
 import resolution
 import lib
-import pickle
-from joblib import Parallel, delayed
 
 
 fpath = '/home/duxiaodi/inpa/GFILE/159243C04_801.geq'
 #  -- INPUT --     mc,  tstep, steps, Eini, Emax, gfile
-ini = creatobj.ini(30000, 1e-11, 10000,  20,  80,  fpath)
-ini.fn = '55mm.pickle'
+ini = creatobj.ini(10000, 1e-11, 10000,  20,  80,  fpath)
+ini.fn = 'tmp.pickle'
+
 ini.charge = 1.6*(1e-19) # D charge
 ini.mass = 2*1.67*(1e-27)# D mass
-ini.cores = 6 # CPU CORES
+ini.cores = 5 # CPU CORES
 
 # -- EQUILIBRIUM --
 ini.fr,ini.fz,ini.fpsi,ini.equ,ini.r,ini.z,ini.psirz \

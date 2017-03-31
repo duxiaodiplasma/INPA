@@ -174,9 +174,41 @@ def rotation_matrix(axis, theta):
 
 
 def rot_geometry(ini,geo,res):
-    geo.nv = geo.uphoreq[0:3]
-    geo.targetnv = [0,1,0]
+    v1 = unit_vector(geo.lphor[0,:]-geo.lphor[3,:])
+    v2 = unit_vector(geo.lphor[3,:]-geo.lphor[2,:])
+    origin = geo.lphor[3,:]
+
+    res.rot_hitpoint = np.zeros((ini.mc,2))
+    geo.rot_lphor = np.zeros((4,2))
+    geo.rot_uphor = np.zeros((4,2))
+    geo.rot_pinhole = np.zeros((4,2))
+    geo.rot_foil = np.zeros((np.shape(geo.foil)[0],4,2))
+    for i in range(0,ini.mc):
+        res.rot_hitpoint[i,0] = np.dot(res.hitpoint[i,:]-origin,v1)
+        res.rot_hitpoint[i,1] = np.dot(res.hitpoint[i,:]-origin,v2)
+
+    for i in range(0,4):
+        geo.rot_lphor[i,0] = np.dot(geo.lphor[i,:]-origin,v1)
+        geo.rot_lphor[i,1] = np.dot(geo.lphor[i,:]-origin,v2)
+
+        geo.rot_uphor[i,0] = np.dot(geo.uphor[i,:]-origin,v1)
+        geo.rot_uphor[i,1] = np.dot(geo.uphor[i,:]-origin,v2)
+
+        geo.rot_pinhole[i,0] = np.dot(geo.pinhole[i,:]-origin,v1)
+        geo.rot_pinhole[i,1] = np.dot(geo.pinhole[i,:]-origin,v2)
+
+        for j in range(0,np.shape(geo.foil)[0]):
+            geo.rot_foil[j,i,0] = np.dot(geo.foil[j,i,:]-origin,v1)
+            geo.rot_foil[j,i,1] = np.dot(geo.foil[j,i,:]-origin,v2)
+
+    return geo,res
+
+
+def rot_geometry_wrong_one(ini,geo,res):
+    geo.nv = unit_vector(geo.lphoreq[0:3])
+    geo.targetnv = [geo.nv[0],geo.nv[1],0]
     axis = np.cross(geo.nv, geo.targetnv)
+    #axis = geo.lphor[0,:] - geo.lphor[3,:]
     angle = angle_between(geo.nv,geo.targetnv)
 
     # rotation matrix

@@ -29,9 +29,9 @@
 ; REVISION HISTORY:
 """
 
+import scipy
 import geqdsk
 import lib
-import scipy
 import numpy as np
 from scipy import interpolate
 import sys

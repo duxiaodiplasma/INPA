@@ -219,13 +219,20 @@ def PARA_mc(ini,geo,i):
        geo.lphoreq[2]*sol[:,2] +
        geo.lphoreq[3]
        )
-    hit_index = np.where(np.diff(tmplower))[0][1]
-    hit_point = sol[hit_index,0:3]
-       #tmpupper =  np.sign(
-       #   geo.uphoreq[0]*sol[:,0] +
-       #   geo.uphoreq[1]*sol[:,1] +
-       #   geo.uphoreq[2]*sol[:,2] +
-       #   geo.uphoreq[3]
-       #   )
+    u_or_l = np.where(np.diff(tmplower))[0]
+    if len(u_or_l) > 1:
+       hit_index = u_or_l[1]
+       hit_point = sol[hit_index,0:3]
+    # if not hit lower one than check upper one
+    else:
+       tmpupper =  np.sign(
+       geo.uphoreq[0]*sol[:,0] +
+       geo.uphoreq[1]*sol[:,1] +
+       geo.uphoreq[2]*sol[:,2] +
+       geo.uphoreq[3]
+       )
+       hit_index = np.where(np.diff(tmpupper))[0][1]
+       hit_point = sol[hit_index,0:3]
+
     return hit_point
 

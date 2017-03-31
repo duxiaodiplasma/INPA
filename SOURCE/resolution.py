@@ -63,20 +63,20 @@ def get_rprange(ini,res):
 def main(ini,res):
 
     res = get_rprange(ini,res)
-    res.bins = [20,50]
+    res.bins = [30,30]
 
-    res.drhomax = binned_statistic_2d(res.rot_hitpoint[:,0],res.rot_hitpoint[:,2],
+    res.drhomax = binned_statistic_2d(res.rot_hitpoint[:,0],res.rot_hitpoint[:,1],
                    res.rho,bins=res.bins,statistic=np.max)
-    res.drhomin = binned_statistic_2d(res.rot_hitpoint[:,0],res.rot_hitpoint[:,2],
+    res.drhomin = binned_statistic_2d(res.rot_hitpoint[:,0],res.rot_hitpoint[:,1],
                    res.rho,bins=res.bins,statistic=np.min)
-    res.drho = binned_statistic_2d(res.rot_hitpoint[:,0],res.rot_hitpoint[:,2],
+    res.drho = binned_statistic_2d(res.rot_hitpoint[:,0],res.rot_hitpoint[:,1],
                 res.rho,bins=res.bins,statistic=np.mean)
 
-    res.dE = binned_statistic_2d(res.rot_hitpoint[:,0],res.rot_hitpoint[:,2],
+    res.dE = binned_statistic_2d(res.rot_hitpoint[:,0],res.rot_hitpoint[:,1],
                    res.E_birth,bins=res.bins,statistic=np.mean)
-    res.dEmin = binned_statistic_2d(res.rot_hitpoint[:,0],res.rot_hitpoint[:,2],
+    res.dEmin = binned_statistic_2d(res.rot_hitpoint[:,0],res.rot_hitpoint[:,1],
                    res.E_birth,bins=res.bins,statistic=np.min)
-    res.dEmax = binned_statistic_2d(res.rot_hitpoint[:,0],res.rot_hitpoint[:,2],
+    res.dEmax = binned_statistic_2d(res.rot_hitpoint[:,0],res.rot_hitpoint[:,1],
                    res.E_birth,bins=res.bins,statistic=np.max)
     return res
 

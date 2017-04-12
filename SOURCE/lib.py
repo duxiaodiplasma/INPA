@@ -176,12 +176,12 @@ def rotation_matrix(axis, theta):
 def rot_geometry(ini,geo,res):
 
     # basis unit vector v1 for new 2D coordinate
-    v1 = unit_vector(geo.lphor[0,:]-geo.lphor[3,:])
+    v2 = unit_vector(geo.lphor[0,:]-geo.lphor[3,:])
 
     # basis unit vecotr v2 for new 2D coordinate
     # make sure this is orthogonoal coordinate
     #v2 = unit_vector(np.cross(v1,geo.nv))
-    v2 = unit_vector(geo.lphor[0,:]-geo.lphor[1,:])
+    v1 = unit_vector(geo.lphor[1,:]-geo.lphor[0,:])
 
     # origin point for new 2D coordinates
     origin = geo.lphor[3,:]

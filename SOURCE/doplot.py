@@ -18,8 +18,8 @@ def orbit3d(geo,res):
 def sp2d(geo,res):
 #    plt.clf()
 
-    #sc = plt.scatter(res.rot_hitpoint[:,0],res.rot_hitpoint[:,2],c=res.E_birth,alpha=0.5)
-    sc = plt.scatter(res.rot_hitpoint[:,0],res.rot_hitpoint[:,1],c=res.rho,alpha=0.5)
+    sc = plt.scatter(res.rot_hitpoint[:,0],res.rot_hitpoint[:,1],c=res.E_birth,alpha=0.5)
+    #sc = plt.scatter(res.rot_hitpoint[:,0],res.rot_hitpoint[:,1],c=res.rho,alpha=0.5)
     rot_foil = np.vstack((geo.rot_foil[0,:,:],geo.rot_foil[0,0,:]))
     rot_pinhole = np.vstack((geo.rot_pinhole,geo.rot_pinhole[0,:]))
     rot_lphor = np.vstack((geo.rot_lphor,geo.rot_lphor[0,:]))
@@ -115,10 +115,12 @@ def grid(ini,geo,res):
 
 
 
-    rot_foil = np.vstack((geo.rot_foil[0,:,:],geo.rot_foil[0,0,:]))
+    for i in range(0,7):
+        rot_foil = np.vstack((geo.rot_foil[i,:,:],geo.rot_foil[i,0,:]))
+        plt.plot(rot_foil[:,0],rot_foil[:,1],alpha=0.5)
+
     rot_pinhole = np.vstack((geo.rot_pinhole,geo.rot_pinhole[0,:]))
     rot_lphor = np.vstack((geo.rot_lphor,geo.rot_lphor[0,:]))
-    plt.plot(rot_foil[:,0],rot_foil[:,1],alpha=0.5)
     plt.plot(rot_lphor[:,0],rot_lphor[:,1],alpha=0.5)
     plt.plot(rot_pinhole[:,0],rot_pinhole[:,1],alpha=0.5)
 
@@ -141,52 +143,67 @@ def all(ini,geo,res):
     ax1 = plt.subplot(gs[35:65,10:65])
     ax2 = plt.subplot(gs[65:95,10:65])
 
-    rot_foil = np.vstack((geo.rot_foil[0,:,:],geo.rot_foil[0,0,:]))
+    for i in range(0,7):
+        rot_foil = np.vstack((geo.rot_foil[i,:,:],geo.rot_foil[i,0,:]))
+        ax0.plot(rot_foil[:,0],rot_foil[:,1],alpha=0.5)
+
     rot_pinhole = np.vstack((geo.rot_pinhole,geo.rot_pinhole[0,:]))
     rot_lphor = np.vstack((geo.rot_lphor,geo.rot_lphor[0,:]))
-    ax0.plot(rot_foil[:,0],rot_foil[:,1],alpha=0.5)
     ax0.plot(rot_lphor[:,0],rot_lphor[:,1],alpha=0.5)
     ax0.plot(rot_pinhole[:,0],rot_pinhole[:,1],alpha=0.5)
 
-    ax1.plot(rot_foil[:,0],rot_foil[:,1],alpha=0.5)
+    for i in range(0,7):
+        rot_foil = np.vstack((geo.rot_foil[i,:,:],geo.rot_foil[i,0,:]))
+        ax1.plot(rot_foil[:,0],rot_foil[:,1],alpha=0.5)
     ax1.plot(rot_lphor[:,0],rot_lphor[:,1],alpha=0.5)
     ax1.plot(rot_pinhole[:,0],rot_pinhole[:,1],alpha=0.5)
 
-    ax2.plot(rot_foil[:,0],rot_foil[:,1],alpha=0.5)
+    for i in range(0,7):
+        rot_foil = np.vstack((geo.rot_foil[i,:,:],geo.rot_foil[i,0,:]))
+        ax2.plot(rot_foil[:,0],rot_foil[:,1],alpha=0.5)
     ax2.plot(rot_lphor[:,0],rot_lphor[:,1],alpha=0.5)
     ax2.plot(rot_pinhole[:,0],rot_pinhole[:,1],alpha=0.5)
 
     rho = res.drho
     rhomin = res.drhomin
     rhomax = res.drhomax
+    drhostd = res.rhostd
+    # 80% confidnece
+    cl = 1.28
 
-    rot_foil = np.vstack((geo.rot_foil[0,:,:],geo.rot_foil[0,0,:]))
+    for i in range(0,7):
+        rot_foil = np.vstack((geo.rot_foil[i,:,:],geo.rot_foil[i,0,:]))
+        ax0.plot(rot_foil[:,0],rot_foil[:,1],alpha=0.5)
     rot_pinhole = np.vstack((geo.rot_pinhole,geo.rot_pinhole[0,:]))
     rot_lphor = np.vstack((geo.rot_lphor,geo.rot_lphor[0,:]))
+
+
+    levels_rho = [0.1,0.3,0.5,0.7,0.9]
+    sc = ax0.contour(rhomin[1][0:res.bins[0]],rhomin[2][0:res.bins[1]],
+                    rho[0].T-cl*drhostd[0].T,levels=levels_rho,linewidth=40)
+    #plt.colorbar(sc,use_gridspec=True)
+    ax0.contour(rhomax[1][0:res.bins[0]],rhomax[2][0:res.bins[1]],
+                    rho[0].T+cl*drhostd[0].T,levels=levels_rho,linewidth=4)
 
     dE = res.dE
     dEmin = res.dEmin
     dEmax = res.dEmax
-
-    levels_rho = [0.1,0.3,0.5,0.7,0.9]
-    sc = ax0.contour(rhomin[1][0:res.bins[0]],rhomin[2][0:res.bins[1]],
-                    rhomin[0].T,levels=levels_rho,linewidth=40)
-    #plt.colorbar(sc,use_gridspec=True)
-    ax0.contour(rhomax[1][0:res.bins[0]],rhomax[2][0:res.bins[1]],
-                    rhomax[0].T,levels=levels_rho,linewidth=4)
-
+    dEstd = res.Estd
     levels_E = [25,40,55,70]
     sc1=ax1.contour(dEmin[1][0:res.bins[0]],dEmin[2][0:res.bins[1]],
-                    dEmin[0].T,levels=levels_E,linewidth=40)
+                    dE[0].T-cl*dEstd[0].T,levels=levels_E,linewidth=40)
 
     ax1.contour(dEmax[1][0:res.bins[0]],dEmax[2][0:res.bins[1]],
-                    dEmax[0].T,levels=levels_E,linewidth=40)
+                    dE[0].T+cl*dEstd[0].T,levels=levels_E,linewidth=40)
 
-    ax2.contour(rho[1][0:res.bins[0]],rho[2][0:res.bins[1]],
+    sc21=ax2.contour(rho[1][0:res.bins[0]],rho[2][0:res.bins[1]],
                     rho[0].T,levels=levels_rho,linewidth=40)
 
-    ax2.contour(dE[1][0:res.bins[0]],dE[2][0:res.bins[1]],
+    sc22=ax2.contour(dE[1][0:res.bins[0]],dE[2][0:res.bins[1]],
                     dE[0].T,levels=levels_E,linewidth=40)
+    #plt.clabel(sc22, fmt = '%2.1d', fontsize=10) #contour line labels
+    #plt.clabel(sc21, fmt = '%3.1f', fontsize=10) #contour line labels
+
 
     ax2.set_xlabel('x[m]')
     ax0.set_ylabel('y[m]')
@@ -218,7 +235,7 @@ def all(ini,geo,res):
     comment2 = 'Filename: ' + np.str(ini.fn)
     comment3 = 'Comment: ' + np.str(ini.comment)
     comment4 =  np.str(ini.gfile)
-    #comment4 = '$\\tau$ = ' + np.str(a.Tau) + ' [ms]'
+    comment5 = 'confidence level: ' + np.str(cl*100)+'% of standard deviation'
     #comment5 = '$\\tilde{S}$ = ' + np.str(np.abs(a.S[0]))
     #comment6 = 'wavelength from ' + np.str(wl[0]/10.)+' to '+np.str(wl[1]/10.) + ' [nm]'
     plt.text(1.02, 0.8, comment0, ha='left', va='center', transform=ax2.transAxes,fontsize=9.0)
@@ -226,10 +243,10 @@ def all(ini,geo,res):
     plt.text(1.02, 0.5, comment2, ha='left', va='center', transform=ax2.transAxes,fontsize=9.0)
     plt.text(1.02, 0.4,comment3, ha='left', va='center', transform=ax2.transAxes,fontsize=9.0)
     plt.text(1.02, 0.25, comment4, ha='left', va='center', transform=ax2.transAxes,fontsize=8.0)
-    #plt.text(1.05, 0.2,comment5, ha='left', va='center', transform=ax2.transAxes,fontsize=10.0)
+    plt.text(1.02, 0.15,comment5, ha='left', va='center', transform=ax2.transAxes,fontsize=8.0)
     #plt.text(1.05, 0.1, comment6, ha='left', va='center', transform=ax2.transAxes,fontsize=10.0)
     fig.savefig(ini.fn+'.ps',dpi=fig.dpi)
     import os
-    return 'file save in: '+os.getcwd()+'/'+ini.fn
+    return 'file save in: '+os.getcwd()+'/'+ini.fn+'.ps'
 
 

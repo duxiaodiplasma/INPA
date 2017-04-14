@@ -76,7 +76,7 @@ def main():
     geo = creatobj.geometry(pinhole/1e3,foil/1e3,uphor/1e3,lphor/1e3)
 
     # generate the input file of INPA GEOMETRY for FIDASIM
-    grids = output4_fidasim.main3('/home/duxiaodi/inpa/OUTPUT/inpa.geometry',geo)
+    grids = output4_fidasim.main2('/home/duxiaodi/inpa/OUTPUT/inpa.geometry',geo)
 
     return geo
 
